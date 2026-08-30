@@ -344,6 +344,25 @@ Override wajib `https`. Setiap request membawa server key di header
 `MIDTRANS_ALLOW_INSECURE_BASE_URL` ada untuk mock server di localhost saat
 pengembangan, bukan untuk apa pun yang memegang kunci sungguhan.
 
+## Stabilitas
+
+Sejak `1.0.0` permukaan API package ini stabil dan tunduk pada
+[semver](https://semver.org). Yang dijanjikan tidak berubah tanpa major version:
+
+- signature method di facade `Midtrans` dan `SnapBi`
+- nama dan payload event yang di-dispatch
+- kunci di `config/midtrans.php`
+- nama route dan alias middleware
+- bentuk `Notification` dan `SnapBiNotification`
+
+Yang **tidak** dijanjikan: apa pun di bawah namespace `Testing`, dan detail
+internal yang tidak disebut di atas.
+
+Batasan pembuktiannya tetap seperti tertulis di
+[Jalur yang belum pernah diuji hidup](#jalur-yang-belum-pernah-diuji-hidup) —
+`1.0.0` menjanjikan API yang stabil, bukan bahwa setiap endpoint Midtrans sudah
+dibuktikan hidup.
+
 ## Lisensi
 
 MIT. Lihat [LICENSE](LICENSE).
