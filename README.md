@@ -302,16 +302,27 @@ hanya `PaymentSettled` yang berarti uang masuk, jumlah harus tetap string karena
 signature dihitung dari teks persisnya, refund butuh `refund_key`, dan route
 webhook tidak boleh masuk group `web`.
 
-Boost saat ini hanya menemukan `resources/boost/` secara otomatis untuk paket
-first-party (scope `laravel/` dan sedikit allowlist), jadi untuk sekarang pasang
-manual:
+Boost menemukannya sendiri. Jalankan `php artisan boost:install`, atau
+`php artisan boost:update --discover` di aplikasi yang sudah memakai Boost, dan
+skill ini muncul sebagai pilihan — Boost membaca `require` dan `require-dev` di
+`composer.json` aplikasi, dan package ini ada di sana.
+
+Kalau ingin memasangnya langsung tanpa menunggu prompt:
 
 ```bash
-php artisan boost:add-skill vendor/aliziodev/laravel-midtrans/resources/boost/skills/laravel-midtrans
+php artisan boost:add-skill aliziodev/laravel-midtrans
 ```
 
-Path-nya sudah mengikuti konvensi Boost, jadi begitu penemuan otomatis dibuka
-untuk paket pihak ketiga, tidak ada yang perlu diubah.
+Perintah itu menerima repo GitHub, bukan path vendor: Boost menelusuri isi repo
+dan menyalin setiap `SKILL.md` yang ditemukannya ke `.ai/skills`.
+
+SDK di baliknya punya skill sendiri di
+[aliziodev/midtrans-php](https://github.com/aliziodev/midtrans-php), berisi
+jebakan pada level SDK — HTTP 202 yang bukan hasil, `Idempotency-Key` yang
+dipakai ulang, dan aturan Snap-BI. Skill itu tidak ikut terpasang di sini, karena
+Boost hanya melihat dependensi langsung aplikasi, bukan yang transitif. Pasang
+juga kalau Anda memang memanggil `MidtransClient` atau `SnapBiClient` langsung,
+di samping facade.
 
 ## Konfigurasi
 
