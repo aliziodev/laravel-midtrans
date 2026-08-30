@@ -1,3 +1,27 @@
+## [1.0.0](https://github.com/aliziodev/laravel-midtrans/compare/v0.2.0...v1.0.0) (2026-08-30)
+
+### ⚠ BREAKING CHANGES
+
+* the package leaves 0.x. Nothing in the code changes,
+but the version number stops saying "this may break at any time" — which
+was the wrong message for something already exercised against the real
+Midtrans sandbox and depended on in production.
+
+A 0.x number is not cosmetic. Composer treats ^0.1 as pinned to 0.1.x,
+so users get no minor updates at all, and cautious teams read 0.x as
+"not ready" and skip the package regardless of what it contains.
+
+The README now states what the version promises: facade signatures,
+event names and payloads, config keys, route names, middleware aliases,
+and the notification objects. It also states what 1.0.0 does not promise
+— that every Midtrans endpoint has been proven live. Sixteen still have
+not, and that stays documented rather than being quietly absorbed into a
+confident version number.
+
+### Features
+
+* commit to a stable API ([15e26e5](https://github.com/aliziodev/laravel-midtrans/commit/15e26e58645cd89b79e02a6fa4c266e73653cf95))
+
 ## [0.2.0](https://github.com/aliziodev/laravel-midtrans/compare/v0.1.0...v0.2.0) (2026-08-30)
 
 ### Features
