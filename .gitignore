@@ -1,0 +1,13 @@
+/vendor/
+/build/
+composer.lock
+/.phpunit.cache
+/coverage/
+coverage.xml
+.phpunit.result.cache
+
+/.idea/
+/.vscode/
+*.swp
+.DS_Store
+Thumbs.db
