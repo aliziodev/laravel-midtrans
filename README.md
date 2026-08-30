@@ -175,13 +175,50 @@ event(new PaymentSettled(Notification::fromArray(['order_id' => 'ORDER-1', ...])
 
 ## Snap-BI
 
-Aktifkan route notifikasinya secara terpisah, karena tidak semua merchant memakai
-Snap-BI:
+Opsional sepenuhnya. Kalau Anda hanya memakai Core API dan Snap — charge, VA,
+QRIS, GoPay, webhook — lewati bagian ini; package bekerja tanpa satu pun nilai
+di bawah.
+
+`CLIENT_ID`, `CLIENT_SECRET`, dan `PARTNER_ID` **tidak ada di dashboard**.
+Ketiganya dikirim Midtrans setelah Anda mendaftarkan public key sendiri di
+*Settings > Access Keys > Payment BI SNAP*. Urutannya:
+
+1. Buat keypair — RSA 2048 minimum, PKCS#8, PEM:
+
+   ```bash
+   openssl genpkey -algorithm rsa -out secrets/snapbi-private.pem \
+       -outform PEM -pkeyopt rsa_keygen_bits:2048
+   openssl rsa -in secrets/snapbi-private.pem -outform PEM -pubout \
+       -out secrets/snapbi-public.pem
+   ```
+
+2. Daftarkan **public key**-nya di dashboard, utuh termasuk baris `BEGIN` dan
+   `END`. Generate di **Sandbox dulu** — mulai dari Production membuat supported
+   scopes kosong dan harus dibatalkan lewat Midtrans support.
+
+3. Midtrans membalas dengan ClientID, ClientSecret, PartnerID, dan public key
+   milik mereka.
+
+Tunjuk PEM lewat path, jangan tempel inline; satu key ~1700 karakter membuat
+`.env` tidak terbaca dan tidak bisa di-diff:
 
 ```dotenv
 MIDTRANS_SNAP_BI_WEBHOOK_ENABLED=true
-MIDTRANS_SNAP_BI_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
+MIDTRANS_SNAP_BI_CLIENT_ID=
+MIDTRANS_SNAP_BI_CLIENT_SECRET=
+MIDTRANS_SNAP_BI_PARTNER_ID=
+
+# Key Anda sendiri, untuk menandatangani request
+MIDTRANS_SNAP_BI_PRIVATE_KEY_PATH=secrets/snapbi-private.pem
+
+# Key milik Midtrans, untuk memverifikasi notifikasi mereka.
+# Ini BUKAN public key yang Anda daftarkan.
+MIDTRANS_SNAP_BI_PUBLIC_KEY_PATH=secrets/midtrans-snapbi-public.pem
 ```
+
+Path relatif diukur dari root aplikasi, dan config yang di-cache menyimpan
+path-nya, bukan isi key-nya. Varian inline `MIDTRANS_SNAP_BI_PRIVATE_KEY` tetap
+ada untuk platform tanpa disk yang bisa ditulis.
 
 ```php
 Event::listen(SnapBiWebhookReceived::class, function ($event) {

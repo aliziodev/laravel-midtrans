@@ -75,24 +75,40 @@ return [
     | Snap-BI (BI-SNAP Core API)
     |--------------------------------------------------------------------------
     |
-    | Only needed if you use the Snap-BI client. The private key is the PEM
-    | contents themselves, not a path — put it in your secret store, not in the
-    | repository.
+    | Every value here is optional. Snap-BI is a separate product with its own
+    | onboarding; if you only use Core API and Snap, leave this block untouched.
     |
     */
 
     'snap_bi' => [
+
+        /*
+        | Midtrans returns these after credential exchange, once you have
+        | registered your public key. None of them appear in the dashboard
+        | beforehand, and none of them are needed unless you use Snap-BI.
+        */
         'client_id' => env('MIDTRANS_SNAP_BI_CLIENT_ID'),
-        'private_key' => env('MIDTRANS_SNAP_BI_PRIVATE_KEY'),
         'client_secret' => env('MIDTRANS_SNAP_BI_CLIENT_SECRET'),
         'partner_id' => env('MIDTRANS_SNAP_BI_PARTNER_ID'),
         'channel_id' => env('MIDTRANS_SNAP_BI_CHANNEL_ID', '95221'),
         'device_id' => env('MIDTRANS_SNAP_BI_DEVICE_ID'),
 
         /*
-        | Midtrans generates the keypair and gives you the public key. Required
-        | to verify Snap-BI notifications.
+        | Your own private key, used to sign the access token request.
+        |
+        | Prefer the _PATH variant: a PEM is 1700-odd characters and putting it
+        | inline turns .env into something nobody can read or diff. The path is
+        | resolved at runtime, so a cached config stores the path rather than
+        | the key. Inline stays available for platforms with no writable disk.
         */
+        'private_key_path' => env('MIDTRANS_SNAP_BI_PRIVATE_KEY_PATH'),
+        'private_key' => env('MIDTRANS_SNAP_BI_PRIVATE_KEY'),
+
+        /*
+        | Midtrans's public key, used to verify the notifications it sends you.
+        | This is NOT the public key you registered with them.
+        */
+        'public_key_path' => env('MIDTRANS_SNAP_BI_PUBLIC_KEY_PATH'),
         'public_key' => env('MIDTRANS_SNAP_BI_PUBLIC_KEY'),
     ],
 

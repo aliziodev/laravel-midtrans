@@ -16,6 +16,16 @@ final class MissingConfigurationException extends RuntimeException
         );
     }
 
+    public static function unreadableKeyFile(string $key, string $path): self
+    {
+        return new self(sprintf(
+            'midtrans.snap_bi.%s_path points at [%s], which does not exist or cannot be read. '
+            .'Give a path relative to the application root, or set the PEM inline instead.',
+            $key,
+            $path,
+        ));
+    }
+
     public static function snapBiPublicKey(): self
     {
         return new self(
