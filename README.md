@@ -261,53 +261,37 @@ php artisan midtrans:status ORDER-1001 --json
 Berguna saat webhook terlewat atau listener gagal: API adalah sumber kebenaran,
 bukan notifikasi yang Anda terima atau tidak.
 
-## Menguji webhook ke sandbox sungguhan
+## Menerima webhook saat pengembangan
 
-Midtrans harus bisa menjangkau mesin Anda. Cara yang biasa dipakai adalah
-mengisi Notification URL di dashboard, tapi itu global — satu developer
-mengubahnya, developer lain kehilangan notifikasi.
+Midtrans harus bisa menjangkau mesin Anda. Cara yang biasa dipakai adalah mengisi
+Notification URL di dashboard, tapi itu global — satu orang mengubahnya, yang
+lain kehilangan notifikasi.
 
 Package ini memakai jalur lain: header `X-Override-Notification`, yang menunjuk
-tujuan notifikasi **per transaksi**. Dashboard tidak disentuh sama sekali.
+tujuan notifikasi **per transaksi**. Dashboard tidak disentuh sama sekali, dan
+dua developer bisa menguji bersamaan.
+
+Buka terowongan ke mesin Anda:
 
 ```bash
-# 1. Buka terowongan ke internet
 cloudflared tunnel --url http://127.0.0.1:8000
-#    -> https://random-words-1234.trycloudflare.com
+# -> https://random-words-1234.trycloudflare.com
 ```
 
+Arahkan notifikasi ke sana:
+
 ```dotenv
-# 2. Arahkan notifikasi ke tunnel itu
 MIDTRANS_OVERRIDE_NOTIFICATION_URL=https://random-words-1234.trycloudflare.com/midtrans/webhook
 ```
 
-```bash
-# 3. Jalankan package sebagai app sungguhan
-composer sandbox:serve
+Selesai. Setiap transaksi yang dibuat aplikasi Anda kini membawa header itu, dan
+notifikasinya masuk ke route webhook Anda dengan signature asli dari Midtrans —
+bukan buatan test. Bayar transaksinya di
+[simulator.sandbox.midtrans.com](https://simulator.sandbox.midtrans.com).
 
-# 4. Buat transaksi, lalu bayar di simulator sandbox
-composer test:sandbox
-```
-
-Simulatornya ada di [simulator.sandbox.midtrans.com](https://simulator.sandbox.midtrans.com).
-Bayar VA atau QRIS yang dibuat test, lalu notifikasi akan masuk ke route webhook
-Anda lewat tunnel — dengan signature asli, bukan buatan test. Pantau hasilnya:
-
-```bash
-tail -f vendor/orchestra/testbench-core/laravel/storage/logs/laravel.log
-```
-
-URL `trycloudflare.com` bersifat sementara dan berubah tiap kali tunnel
-dijalankan ulang, jadi perbarui `.env` setiap memulai sesi.
-
-> **Kenapa `composer sandbox:serve`, bukan `vendor/bin/testbench serve` langsung?**
-> Testbench boot dari skeleton-nya sendiri, jadi Laravel membaca `.env` dari
-> `vendor/orchestra/testbench-core/laravel`, bukan dari root package. Mengoper
-> nilainya sebagai environment variable juga tidak menolong, karena
-> `variables_order` bawaan PHP (`GPCS`) membuat `$_ENV` kosong. Hasilnya app
-> tanpa server key, yang menolak setiap notifikasi dengan **403 yang terlihat
-> persis seperti signature gagal**. Skrip ini menyalin nilainya ke skeleton
-> lebih dulu, dan menolak jalan kalau key-nya bukan kunci sandbox.
+URL `trycloudflare.com` berubah tiap kali tunnel dijalankan ulang, jadi perbarui
+`.env` setiap memulai sesi. Di production, kosongkan variabel ini dan pakai
+Notification URL di dashboard seperti biasa.
 
 ## Laravel Boost
 
