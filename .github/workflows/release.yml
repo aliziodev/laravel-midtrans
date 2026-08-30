@@ -47,9 +47,13 @@ jobs:
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v4
         with:
+          # Pinned deliberately. Unpinned, npm resolved a preset that wants
+          # conventional-changelog-writer@9 while the action bundles 8, and the
+          # release died on a missing Handlebars helper. A release pipeline that
+          # depends on whatever npm resolved that morning is not a pipeline.
           extra_plugins: |
-            conventional-changelog-conventionalcommits
-            @semantic-release/changelog
-            @semantic-release/git
+            conventional-changelog-conventionalcommits@8.0.0
+            @semantic-release/changelog@6.0.3
+            @semantic-release/git@10.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
