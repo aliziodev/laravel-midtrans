@@ -71,12 +71,13 @@ jobs:
       - name: Run tests with coverage
         run: composer test:coverage
 
-      # Skipped rather than tolerated: with a token configured, a broken upload
-      # still fails the job, so the badge cannot go quietly stale.
+      # Always attempted, so coverage still reaches an indexed repository with no
+      # token set. Only failed loudly once a token exists, because that is the
+      # point at which a broken upload means something is actually wrong rather
+      # than tokenless simply being refused.
       - name: Upload coverage to Codecov
-        if: env.CODECOV_TOKEN != ''
         uses: codecov/codecov-action@v5
         with:
           files: ./coverage.xml
           token: ${{ env.CODECOV_TOKEN }}
-          fail_ci_if_error: true
+          fail_ci_if_error: ${{ env.CODECOV_TOKEN != '' }}

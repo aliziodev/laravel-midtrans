@@ -19,3 +19,6 @@ Thumbs.db
 /secrets/
 *.pem
 !tests/Fixtures/*.pem
+
+# Aplikasi uji sementara
+/.probe-app/

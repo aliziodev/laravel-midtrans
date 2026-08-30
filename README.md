@@ -2,6 +2,8 @@
 
 [![Tests](https://github.com/aliziodev/laravel-midtrans/actions/workflows/tests.yml/badge.svg)](https://github.com/aliziodev/laravel-midtrans/actions/workflows/tests.yml)
 [![Latest Stable Version](https://img.shields.io/packagist/v/aliziodev/laravel-midtrans.svg)](https://packagist.org/packages/aliziodev/laravel-midtrans)
+[![codecov](https://codecov.io/gh/aliziodev/laravel-midtrans/graph/badge.svg)](https://codecov.io/gh/aliziodev/laravel-midtrans)
+[![Total Downloads](https://img.shields.io/packagist/dt/aliziodev/laravel-midtrans)](https://packagist.org/packages/aliziodev/laravel-midtrans)
 [![PHP Version](https://img.shields.io/packagist/php-v/aliziodev/laravel-midtrans)](https://packagist.org/packages/aliziodev/laravel-midtrans)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -288,6 +290,26 @@ dijalankan ulang, jadi perbarui `.env` setiap memulai sesi.
 > tanpa server key, yang menolak setiap notifikasi dengan **403 yang terlihat
 > persis seperti signature gagal**. Skrip ini menyalin nilainya ke skeleton
 > lebih dulu, dan menolak jalan kalau key-nya bukan kunci sandbox.
+
+## Laravel Boost
+
+Package ini menyertakan skill untuk [Laravel Boost](https://github.com/laravel/boost)
+di `resources/boost/skills/laravel-midtrans/SKILL.md`. Isinya bukan daftar API —
+itu sudah ada di sini — melainkan jebakan yang membuat integrasi Midtrans salah:
+hanya `PaymentSettled` yang berarti uang masuk, jumlah harus tetap string karena
+signature dihitung dari teks persisnya, refund butuh `refund_key`, dan route
+webhook tidak boleh masuk group `web`.
+
+Boost saat ini hanya menemukan `resources/boost/` secara otomatis untuk paket
+first-party (scope `laravel/` dan sedikit allowlist), jadi untuk sekarang pasang
+manual:
+
+```bash
+php artisan boost:add-skill vendor/aliziodev/laravel-midtrans/resources/boost/skills/laravel-midtrans
+```
+
+Path-nya sudah mengikuti konvensi Boost, jadi begitu penemuan otomatis dibuka
+untuk paket pihak ketiga, tidak ada yang perlu diubah.
 
 ## Konfigurasi
 
