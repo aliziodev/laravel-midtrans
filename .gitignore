@@ -11,3 +11,11 @@ coverage.xml
 *.swp
 .DS_Store
 Thumbs.db
+
+# Sandbox credentials — never commit
+.env
+
+# Private keys — never commit
+/secrets/
+*.pem
+!tests/Fixtures/*.pem

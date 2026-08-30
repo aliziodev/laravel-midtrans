@@ -19,14 +19,17 @@ use Aliziodev\MidtransPhp\MidtransClient;
  *   MIDTRANS_SANDBOX_SERVER_KEY=SB-Mid-server-xxx vendor/bin/pest --group=sandbox
  */
 beforeEach(function () {
-    $serverKey = getenv('MIDTRANS_SANDBOX_SERVER_KEY') ?: '';
+    $serverKey = trim(getenv('MIDTRANS_SANDBOX_SERVER_KEY') ?: '');
+    $prefix = 'SB-Mid-server-';
 
-    if ($serverKey === '') {
-        $this->markTestSkipped('Set MIDTRANS_SANDBOX_SERVER_KEY to run the sandbox suite.');
+    // The .env.example placeholder is the bare prefix, so an unfilled copy has
+    // to skip rather than fire real requests that will 401.
+    if ($serverKey === '' || $serverKey === $prefix) {
+        $this->markTestSkipped('Set MIDTRANS_SANDBOX_SERVER_KEY in .env to run the sandbox suite.');
     }
 
-    if (! str_starts_with($serverKey, 'SB-Mid-server-')) {
-        $this->fail('Refusing to run: MIDTRANS_SANDBOX_SERVER_KEY does not look like a sandbox key.');
+    if (! str_starts_with($serverKey, $prefix)) {
+        $this->fail('Refusing to run: MIDTRANS_SANDBOX_SERVER_KEY is not a sandbox key.');
     }
 
     config()->set('midtrans.server_key', $serverKey);

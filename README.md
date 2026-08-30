@@ -204,6 +204,41 @@ php artisan midtrans:status ORDER-1001 --json
 Berguna saat webhook terlewat atau listener gagal: API adalah sumber kebenaran,
 bukan notifikasi yang Anda terima atau tidak.
 
+## Menguji webhook ke sandbox sungguhan
+
+Midtrans harus bisa menjangkau mesin Anda. Cara yang biasa dipakai adalah
+mengisi Notification URL di dashboard, tapi itu global — satu developer
+mengubahnya, developer lain kehilangan notifikasi.
+
+Package ini memakai jalur lain: header `X-Override-Notification`, yang menunjuk
+tujuan notifikasi **per transaksi**. Dashboard tidak disentuh sama sekali.
+
+```bash
+# 1. Jalankan package sebagai app sungguhan
+vendor/bin/testbench serve
+
+# 2. Buka ke internet
+cloudflared tunnel --url http://127.0.0.1:8000
+#    -> https://random-words-1234.trycloudflare.com
+```
+
+```dotenv
+# 3. Arahkan notifikasi ke tunnel itu
+MIDTRANS_OVERRIDE_NOTIFICATION_URL=https://random-words-1234.trycloudflare.com/midtrans/webhook
+```
+
+```bash
+# 4. Buat transaksi, lalu bayar di simulator sandbox
+composer test:sandbox
+```
+
+Simulatornya ada di [simulator.sandbox.midtrans.com](https://simulator.sandbox.midtrans.com).
+Bayar VA atau QRIS yang dibuat test, lalu notifikasi akan masuk ke route webhook
+Anda lewat tunnel — dengan signature asli, bukan buatan test.
+
+URL `trycloudflare.com` bersifat sementara dan berubah tiap kali tunnel
+dijalankan ulang, jadi perbarui `.env` setiap memulai sesi.
+
 ## Konfigurasi
 
 Semua opsi terdokumentasi di `config/midtrans.php`. Yang paling sering disentuh:

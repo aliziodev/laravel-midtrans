@@ -1,0 +1,14 @@
+# Lets the package be served as a real app, which is what makes an end-to-end
+# webhook test against the Midtrans sandbox possible:
+#
+#   vendor/bin/testbench serve
+#   cloudflared tunnel --url http://127.0.0.1:8000
+#
+# Credentials come from .env in the package root, loaded below.
+providers:
+  - Aliziodev\LaravelMidtrans\MidtransServiceProvider
+
+env:
+  - APP_KEY="base64:Q1hDMUlEQ0FQVFVSRVRIRUZMQUdIRVJFMTIzNDU2Nzg="
+  - APP_DEBUG=true
+  - CACHE_STORE=file
