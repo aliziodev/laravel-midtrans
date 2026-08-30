@@ -20,16 +20,9 @@ use Aliziodev\MidtransPhp\MidtransClient;
  */
 beforeEach(function () {
     $serverKey = trim(getenv('MIDTRANS_SANDBOX_SERVER_KEY') ?: '');
-    $prefix = 'SB-Mid-server-';
 
-    // The .env.example placeholder is the bare prefix, so an unfilled copy has
-    // to skip rather than fire real requests that will 401.
-    if ($serverKey === '' || $serverKey === $prefix) {
+    if ($serverKey === '' || str_ends_with($serverKey, '-server-')) {
         $this->markTestSkipped('Set MIDTRANS_SANDBOX_SERVER_KEY in .env to run the sandbox suite.');
-    }
-
-    if (! str_starts_with($serverKey, $prefix)) {
-        $this->fail('Refusing to run: MIDTRANS_SANDBOX_SERVER_KEY is not a sandbox key.');
     }
 
     config()->set('midtrans.server_key', $serverKey);
@@ -40,6 +33,14 @@ beforeEach(function () {
     app()->forgetInstance(MidtransConfig::class);
     app()->forgetInstance(MidtransClient::class);
     app()->forgetInstance(MidtransServiceProvider::CLIENT);
+
+    /*
+    | Asserted from the resolved host, not the key's prefix. Sandbox keys used
+    | to start with SB-Mid-server- and newer ones start with Mid-server-, which
+    | is what production keys have always looked like. The host is what decides
+    | whether these tests can move real money.
+    */
+    expect(app(MidtransConfig::class)->coreBaseUrl())->toContain('sandbox');
 });
 
 function sandboxOrderId(string $prefix = 'PKG'): string
