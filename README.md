@@ -175,6 +175,24 @@ event-nya langsung:
 event(new PaymentSettled(Notification::fromArray(['order_id' => 'ORDER-1', ...])));
 ```
 
+### Jalur yang belum pernah diuji hidup
+
+Package ini membungkus `aliziodev/midtrans-php`, jadi batasan pembuktiannya sama.
+Dari 57 method yang menyentuh API, 41 sudah dijawab sandbox sungguhan; 16 belum,
+dan tidak satu pun karena kodenya. Yang perlu Anda tahu:
+
+- **Refund** (4 method) belum pernah dijalankan — Midtrans harus mengaktifkannya
+  per merchant lebih dulu.
+- **GoPay Tokenization / account linking** (5 method) belum aktif di akun uji.
+- **Pre-auth Snap-BI**, **promosi GoPay**, dan **card point inquiry** butuh
+  pengaktifan lewat sales rep.
+- **Notifikasi Snap-BI** belum pernah diverifikasi lawan notifikasi asli, karena
+  public key Midtrans belum tersedia.
+- **Host production** tidak pernah disentuh sama sekali.
+
+Rinciannya, lengkap dengan kutipan dokumentasi resmi Midtrans untuk tiap
+halangan, ada di [README midtrans-php](https://github.com/aliziodev/midtrans-php#yang-belum-pernah-diuji-dan-kenapa).
+
 ## Snap-BI
 
 Opsional sepenuhnya. Kalau Anda hanya memakai Core API dan Snap — charge, VA,
