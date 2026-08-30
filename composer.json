@@ -44,6 +44,7 @@
   "scripts": {
     "test": "pest --exclude-group=sandbox",
     "test:sandbox": "pest --group=sandbox",
+    "sandbox:serve": "@php scripts/sandbox-serve.php",
     "test:coverage": "pest --coverage --coverage-clover=coverage.xml",
     "lint": "pint",
     "lint:test": "pint --test",

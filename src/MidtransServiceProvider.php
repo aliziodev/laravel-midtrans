@@ -8,6 +8,7 @@ use Aliziodev\LaravelMidtrans\Console\Commands\TransactionStatusCommand;
 use Aliziodev\LaravelMidtrans\Exceptions\MissingConfigurationException;
 use Aliziodev\LaravelMidtrans\Http\Middleware\VerifyMidtransSignature;
 use Aliziodev\LaravelMidtrans\Http\Middleware\VerifySnapBiSignature;
+use Aliziodev\LaravelMidtrans\Support\KeyResolver;
 use Aliziodev\LaravelMidtrans\Webhook\WebhookHandler;
 use Aliziodev\MidtransPhp\Config\MidtransConfig;
 use Aliziodev\MidtransPhp\Http\CurlTransport;
@@ -34,7 +35,7 @@ final class MidtransServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../config/midtrans.php', 'midtrans');
 
-        $this->resolveKeyPaths();
+        $this->app->singleton(KeyResolver::class);
 
         $this->app->singleton(MidtransConfig::class, fn (Application $app): MidtransConfig => $this->buildConfig($app));
 
@@ -91,7 +92,7 @@ final class MidtransServiceProvider extends ServiceProvider
             retryDelayMs: (int) ($midtrans['retry_delay_ms'] ?? 200),
             idempotencyKeyPrefix: (string) ($midtrans['idempotency_key_prefix'] ?? 'midtrans'),
             snapBiClientId: $this->nullableString($snapBi['client_id'] ?? null),
-            snapBiPrivateKey: $this->nullableString($snapBi['private_key'] ?? null),
+            snapBiPrivateKey: $app->make(KeyResolver::class)->privateKey(),
             snapBiClientSecret: $this->nullableString($snapBi['client_secret'] ?? null),
             snapBiPartnerId: $this->nullableString($snapBi['partner_id'] ?? null),
             snapBiChannelId: (string) ($snapBi['channel_id'] ?? '95221'),
@@ -153,49 +154,6 @@ final class MidtransServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([TransactionStatusCommand::class]);
         }
-    }
-
-    /**
-     * Replaces snap_bi.*_key with the contents of snap_bi.*_key_path when a path
-     * is given.
-     *
-     * Done against the config repository rather than in the config file so a
-     * cached config stores the path, not the key, and so everything reading
-     * midtrans.snap_bi.public_key — the webhook middleware included — sees the
-     * resolved PEM without knowing a path option exists.
-     */
-    private function resolveKeyPaths(): void
-    {
-        $config = $this->app['config'];
-
-        foreach (['private_key', 'public_key'] as $key) {
-            $path = $this->nullableString($config->get("midtrans.snap_bi.{$key}_path"));
-
-            if ($path === null) {
-                continue;
-            }
-
-            $resolved = $this->resolvePath($path);
-
-            if (! is_file($resolved) || ! is_readable($resolved)) {
-                throw MissingConfigurationException::unreadableKeyFile($key, $resolved);
-            }
-
-            $config->set("midtrans.snap_bi.{$key}", trim((string) file_get_contents($resolved)));
-        }
-    }
-
-    /**
-     * Relative paths are taken from the application root, so a value like
-     * secrets/snapbi-private.pem behaves the same however the app was booted.
-     */
-    private function resolvePath(string $path): string
-    {
-        $isAbsolute = str_starts_with($path, DIRECTORY_SEPARATOR)
-            || str_starts_with($path, '/')
-            || preg_match('#^[A-Za-z]:[\\\\/]#', $path) === 1;
-
-        return $isAbsolute ? $path : $this->app->basePath($path);
     }
 
     private function nullableString(mixed $value): ?string

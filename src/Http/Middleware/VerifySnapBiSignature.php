@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aliziodev\LaravelMidtrans\Http\Middleware;
 
 use Aliziodev\LaravelMidtrans\Exceptions\InvalidSignatureException;
+use Aliziodev\LaravelMidtrans\Support\KeyResolver;
 use Aliziodev\MidtransPhp\Webhooks\SnapBiWebhookVerifier;
 use Closure;
 use Illuminate\Contracts\Config\Repository as Config;
@@ -24,6 +25,7 @@ final class VerifySnapBiSignature
     public function __construct(
         private readonly Config $config,
         private readonly LoggerInterface $logger,
+        private readonly KeyResolver $keys,
     ) {}
 
     public function handle(Request $request, Closure $next): Response
@@ -34,7 +36,7 @@ final class VerifySnapBiSignature
             $this->reject($request, 'empty request body');
         }
 
-        $publicKey = (string) $this->config->get('midtrans.snap_bi.public_key');
+        $publicKey = (string) $this->keys->publicKey();
 
         if ($publicKey === '') {
             $this->reject($request, 'midtrans.snap_bi.public_key is not configured');

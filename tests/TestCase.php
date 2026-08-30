@@ -36,6 +36,14 @@ abstract class TestCase extends Orchestra
         $app['config']->set('midtrans.client_key', 'SB-Mid-client-testing-key');
         $app['config']->set('midtrans.is_production', false);
 
+        /*
+        | Unit tests must not see whatever the developer has in .env. Without
+        | this, a real MIDTRANS_SNAP_BI_PRIVATE_KEY_PATH reaches the provider and
+        | resolves against Testbench's skeleton rather than the package root, so
+        | every test fails on a file that was never meant to be involved.
+        */
+        $app['config']->set('midtrans.snap_bi', []);
+
         // Deterministic tests: no waiting, and no cross-test cache bleed.
         $app['config']->set('midtrans.max_retries', 0);
         $app['config']->set('midtrans.webhook.deduplicate.ttl', 0);

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Aliziodev\LaravelMidtrans\Exceptions\MissingConfigurationException;
-use Aliziodev\LaravelMidtrans\MidtransServiceProvider;
+use Aliziodev\LaravelMidtrans\Support\KeyResolver;
 use Aliziodev\MidtransPhp\Config\MidtransConfig;
 
 /**
@@ -15,19 +15,18 @@ function pemFixture(string $name): string
     return __DIR__.'/../Fixtures/'.$name;
 }
 
-function reboot(): void
+function keys(): KeyResolver
 {
     app()->forgetInstance(MidtransConfig::class);
-    (new MidtransServiceProvider(app()))->register();
+    app()->forgetInstance(KeyResolver::class);
+
+    return app(KeyResolver::class);
 }
 
 it('reads the private key from an absolute path', function () {
     config()->set('midtrans.snap_bi.private_key_path', pemFixture('snapbi_test_private.pem'));
-    config()->set('midtrans.snap_bi.private_key', null);
 
-    reboot();
-
-    $key = app(MidtransConfig::class)->snapBiPrivateKey;
+    $key = keys()->privateKey();
 
     expect($key)->toContain('BEGIN PRIVATE KEY')
         ->and(openssl_pkey_get_private((string) $key))->not->toBeFalse();
@@ -44,42 +43,41 @@ it('resolves a relative path against the application root', function () {
 
     try {
         config()->set('midtrans.snap_bi.private_key_path', $relative);
-        config()->set('midtrans.snap_bi.private_key', null);
 
-        reboot();
-
-        expect(app(MidtransConfig::class)->snapBiPrivateKey)->toContain('BEGIN PRIVATE KEY');
+        expect(keys()->privateKey())->toContain('BEGIN PRIVATE KEY');
     } finally {
         @unlink($absolute);
         @rmdir(dirname($absolute));
     }
 });
 
-it('resolves the public key into config, so the middleware needs no path awareness', function () {
+it('reads the public key the same way', function () {
     config()->set('midtrans.snap_bi.public_key_path', pemFixture('snapbi_test_public.pem'));
-    config()->set('midtrans.snap_bi.public_key', null);
 
-    reboot();
-
-    expect(config('midtrans.snap_bi.public_key'))->toContain('BEGIN PUBLIC KEY');
+    expect(keys()->publicKey())->toContain('BEGIN PUBLIC KEY');
 });
 
 it('still accepts an inline PEM for platforms with no writable disk', function () {
-    $pem = (string) file_get_contents(pemFixture('snapbi_test_private.pem'));
+    $pem = trim((string) file_get_contents(pemFixture('snapbi_test_private.pem')));
 
     config()->set('midtrans.snap_bi.private_key_path', null);
     config()->set('midtrans.snap_bi.private_key', $pem);
 
-    reboot();
-
-    expect(app(MidtransConfig::class)->snapBiPrivateKey)->toBe($pem);
+    expect(keys()->privateKey())->toBe($pem);
 });
 
 it('prefers the path when both are set', function () {
     config()->set('midtrans.snap_bi.private_key_path', pemFixture('snapbi_test_private.pem'));
     config()->set('midtrans.snap_bi.private_key', 'inline-nonsense');
 
-    reboot();
+    expect(keys()->privateKey())->toContain('BEGIN PRIVATE KEY');
+});
+
+it('feeds the resolved key into the SDK config', function () {
+    config()->set('midtrans.snap_bi.private_key_path', pemFixture('snapbi_test_private.pem'));
+
+    app()->forgetInstance(MidtransConfig::class);
+    app()->forgetInstance(KeyResolver::class);
 
     expect(app(MidtransConfig::class)->snapBiPrivateKey)->toContain('BEGIN PRIVATE KEY');
 });
@@ -87,8 +85,19 @@ it('prefers the path when both are set', function () {
 it('names the file it could not read instead of failing later at the API', function () {
     config()->set('midtrans.snap_bi.private_key_path', 'secrets/does-not-exist.pem');
 
-    expect(fn () => reboot())
+    expect(fn () => keys()->privateKey())
         ->toThrow(MissingConfigurationException::class, 'does-not-exist.pem');
+});
+
+/**
+ * Reading is lazy on purpose: registering a service provider should not touch
+ * the disk, and an application that never uses Snap-BI should never pay for it.
+ */
+it('does not touch the disk while the provider registers', function () {
+    config()->set('midtrans.snap_bi.private_key_path', 'secrets/does-not-exist.pem');
+
+    // Booting is fine; only asking for the key fails.
+    expect(app(KeyResolver::class))->toBeInstanceOf(KeyResolver::class);
 });
 
 it('leaves everything null when Snap-BI is not configured at all', function () {
@@ -97,7 +106,8 @@ it('leaves everything null when Snap-BI is not configured at all', function () {
     // has to work without them.
     config()->set('midtrans.snap_bi', []);
 
-    reboot();
+    app()->forgetInstance(MidtransConfig::class);
+    app()->forgetInstance(KeyResolver::class);
 
     $config = app(MidtransConfig::class);
 
