@@ -51,6 +51,30 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Base URL Overrides
+    |--------------------------------------------------------------------------
+    |
+    | Leave these null and the correct Midtrans host is chosen from
+    | is_production. Set one only when you have to point somewhere else: a
+    | recorded-response proxy in CI, a corporate egress gateway, or a Midtrans
+    | host that ships before this package knows about it.
+    |
+    | An override must be https. That is what allow_insecure_base_url exists to
+    | relax, and it is for pointing at a mock server on localhost during
+    | development — never for anything that carries a real key.
+    |
+    */
+
+    'core_base_url' => env('MIDTRANS_CORE_BASE_URL'),
+
+    'snap_base_url' => env('MIDTRANS_SNAP_BASE_URL'),
+
+    'snap_bi_base_url' => env('MIDTRANS_SNAP_BI_BASE_URL'),
+
+    'allow_insecure_base_url' => (bool) env('MIDTRANS_ALLOW_INSECURE_BASE_URL', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Optional Request Headers
     |--------------------------------------------------------------------------
     |

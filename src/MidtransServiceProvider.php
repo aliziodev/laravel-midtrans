@@ -101,6 +101,10 @@ final class MidtransServiceProvider extends ServiceProvider
             overrideNotificationUrl: $this->nullableString($midtrans['override_notification_url'] ?? null),
             paymentLocale: $this->nullableString($midtrans['payment_locale'] ?? null),
             popId: $this->nullableString($midtrans['pop_id'] ?? null),
+            coreBaseUrlOverride: $this->nullableString($midtrans['core_base_url'] ?? null),
+            snapBaseUrlOverride: $this->nullableString($midtrans['snap_base_url'] ?? null),
+            snapBiBaseUrlOverride: $this->nullableString($midtrans['snap_bi_base_url'] ?? null),
+            allowInsecureBaseUrl: (bool) ($midtrans['allow_insecure_base_url'] ?? false),
         );
     }
 

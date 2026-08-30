@@ -7,6 +7,7 @@ use Aliziodev\LaravelMidtrans\Facades\Midtrans;
 use Aliziodev\LaravelMidtrans\Facades\SnapBi;
 use Aliziodev\LaravelMidtrans\MidtransServiceProvider;
 use Aliziodev\MidtransPhp\Config\MidtransConfig;
+use Aliziodev\MidtransPhp\Exceptions\MidtransException;
 use Aliziodev\MidtransPhp\Http\Transport;
 use Aliziodev\MidtransPhp\MidtransClient;
 use Aliziodev\MidtransPhp\SnapBi\SnapBiClient;
@@ -86,4 +87,53 @@ it('keeps the credentials out of a dumped config object', function () {
 
     expect($dumped)->not->toContain('SB-Mid-server-testing-key')
         ->and($dumped)->toContain('[redacted]');
+});
+
+it('maps the base URL overrides onto the SDK config', function () {
+    config()->set([
+        'midtrans.core_base_url' => 'https://core.proxy.test',
+        'midtrans.snap_base_url' => 'https://snap.proxy.test',
+        'midtrans.snap_bi_base_url' => 'https://snapbi.proxy.test',
+    ]);
+
+    app()->forgetInstance(MidtransConfig::class);
+    $config = app(MidtransConfig::class);
+
+    expect($config->coreBaseUrl())->toBe('https://core.proxy.test')
+        ->and($config->snapBaseUrl())->toBe('https://snap.proxy.test')
+        ->and($config->snapBiBaseUrl())->toBe('https://snapbi.proxy.test');
+});
+
+it('refuses a plain http override unless it is explicitly allowed', function () {
+    config()->set('midtrans.core_base_url', 'http://localhost:8080');
+    app()->forgetInstance(MidtransConfig::class);
+
+    expect(fn () => app(MidtransConfig::class))->toThrow(MidtransException::class);
+
+    config()->set('midtrans.allow_insecure_base_url', true);
+    app()->forgetInstance(MidtransConfig::class);
+
+    expect(app(MidtransConfig::class)->coreBaseUrl())->toBe('http://localhost:8080');
+});
+
+/**
+ * Every MidtransConfig constructor parameter has to be reachable from the
+ * Laravel config file, or a feature exists in the SDK that a Laravel user
+ * cannot switch on. The base URL overrides went missing exactly this way.
+ */
+it('exposes every SDK config option through the Laravel config', function () {
+    $parameters = array_map(
+        fn (ReflectionParameter $p): string => $p->getName(),
+        (new ReflectionClass(MidtransConfig::class))->getConstructor()->getParameters(),
+    );
+
+    $provider = file_get_contents(__DIR__.'/../../src/MidtransServiceProvider.php');
+    preg_match('/private function buildConfig.*?\n    \}/s', $provider, $body);
+
+    $unmapped = array_values(array_filter(
+        $parameters,
+        fn (string $name): bool => ! str_contains($body[0], $name.':'),
+    ));
+
+    expect($unmapped)->toBeEmpty();
 });

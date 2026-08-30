@@ -325,6 +325,25 @@ Semua opsi terdokumentasi di `config/midtrans.php`. Yang paling sering disentuh:
 | `MIDTRANS_WEBHOOK_DEDUPE_TTL` | `300` | Jendela deduplikasi, detik. `0` mematikan |
 | `MIDTRANS_IDEMPOTENCY_PREFIX` | `midtrans` | Maksimal 13 karakter |
 
+### Mengarahkan ke host lain
+
+Biarkan kosong dan host Midtrans yang benar dipilih otomatis dari
+`MIDTRANS_IS_PRODUCTION`. Isi salah satunya hanya bila Anda memang harus menuju
+tempat lain — proxy perekam respons di CI, gateway egress kantor, atau host
+Midtrans baru yang keluar sebelum package ini mengenalnya.
+
+| Env | Keterangan |
+|---|---|
+| `MIDTRANS_CORE_BASE_URL` | Mengganti host Core API |
+| `MIDTRANS_SNAP_BASE_URL` | Mengganti host Snap |
+| `MIDTRANS_SNAP_BI_BASE_URL` | Mengganti host Snap-BI |
+| `MIDTRANS_ALLOW_INSECURE_BASE_URL` | Mengizinkan `http://` pada override di atas |
+
+Override wajib `https`. Setiap request membawa server key di header
+`Authorization`, jadi `http` berarti mengirimkannya sebagai teks terbuka —
+`MIDTRANS_ALLOW_INSECURE_BASE_URL` ada untuk mock server di localhost saat
+pengembangan, bukan untuk apa pun yang memegang kunci sungguhan.
+
 ## Lisensi
 
 MIT. Lihat [LICENSE](LICENSE).
