@@ -1,3 +1,9 @@
+## [0.2.0](https://github.com/aliziodev/laravel-midtrans/compare/v0.1.0...v0.2.0) (2026-08-30)
+
+### Features
+
+* expose the base URL overrides and the insecure-URL escape hatch ([f9e46f6](https://github.com/aliziodev/laravel-midtrans/commit/f9e46f6f5a0ccdf134321c5e3804c283a0c15820))
+
 ## [0.1.0](https://github.com/aliziodev/laravel-midtrans/compare/v0.0.0...v0.1.0) (2026-08-30)
 
 ### Features
