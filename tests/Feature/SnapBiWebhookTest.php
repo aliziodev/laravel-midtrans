@@ -149,3 +149,14 @@ it('reads the amount without casting it', function () {
     expect($notification->amount())->toBe('10000.00')->toBeString()
         ->and($notification->currency())->toBe('IDR');
 });
+
+it('rejects a Snap-BI notification with an empty body', function () {
+    Event::fake([SnapBiWebhookReceived::class]);
+
+    [, $headers] = snapBiSigned(['latestTransactionStatus' => '00']);
+
+    $this->call('POST', SNAP_BI_PATH, server: $this->transformHeadersToServerVars($headers), content: '')
+        ->assertForbidden();
+
+    Event::assertNotDispatched(SnapBiWebhookReceived::class);
+});

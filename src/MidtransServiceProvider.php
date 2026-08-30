@@ -123,9 +123,13 @@ final class MidtransServiceProvider extends ServiceProvider
 
     private function registerPublishables(): void
     {
+        // A test suite always runs in console, so the early return cannot be
+        // reached from here.
+        // @codeCoverageIgnoreStart
         if (! $this->app->runningInConsole()) {
-            return; // @codeCoverageIgnore — the test suite is always console
+            return;
         }
+        // @codeCoverageIgnoreEnd
 
         $this->publishes([
             __DIR__.'/../config/midtrans.php' => $this->app->configPath('midtrans.php'),
