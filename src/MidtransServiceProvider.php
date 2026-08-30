@@ -124,7 +124,7 @@ final class MidtransServiceProvider extends ServiceProvider
     private function registerPublishables(): void
     {
         if (! $this->app->runningInConsole()) {
-            return;
+            return; // @codeCoverageIgnore — the test suite is always console
         }
 
         $this->publishes([
